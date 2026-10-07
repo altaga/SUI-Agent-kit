@@ -54,7 +54,7 @@ input,textarea{font:inherit;color:inherit}
 .hello h1{font-family:var(--serif);font-weight:400;font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;margin:0}
 .hello p{margin:0;color:var(--muted);max-width:460px}
 .quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;max-width:620px;margin-top:10px;text-align:left}
-.quick-grid button{display:flex;flex-direction:column;gap:2px;border:1px solid var(--border);background:var(--card);border-radius:14px;padding:12px 14px;min-height:64px}
+.quick-grid button{display:flex;flex-direction:column;gap:2px;border:1px solid var(--border);background:var(--card);border-radius:14px;padding:12px 14px;min-height:64px;text-align:left;align-items:flex-start}
 .quick-grid button b{font-weight:600;font-size:14.5px}.quick-grid button span{font-size:12.5px;color:var(--muted)}
 .quick-grid button:hover{border-color:var(--strong);background:var(--hover)}.quick-grid button:disabled{opacity:.5}
 .quick-grid .demo{border-color:var(--accent);background:var(--soft)}

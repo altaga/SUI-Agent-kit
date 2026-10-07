@@ -101,6 +101,7 @@ export const tools = [
     input_schema: { type: "object", properties: { command: { type: "string" }, timeout_s: { type: "number", description: "default 120" } }, required: ["command"] },
     mutating: true,
     run: async (i, ctx) => {
+      if (typeof i.command !== "string" || !i.command.trim()) return "Error: bash needs a non-empty \"command\" string.";
       if (!(await ctx.approve(`RUN  ${i.command}`))) return "Declined by user.";
       return runShell(i.command, ctx.cwd, Math.min(i.timeout_s || 120, 1800) * 1000);
     },
