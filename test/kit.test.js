@@ -72,3 +72,22 @@ test("edit_file requires a unique match", async () => {
   assert.match(await edit.run({ path: "e.txt", old_string: "b", new_string: "c" }, ctx), /Edited/);
   assert.equal(fs.readFileSync(f, "utf8"), "a a c");
 });
+
+test("converse adapter maps tools, tool results and responses", async () => {
+  const { toConverse, fromConverse } = await import("../src/model.js");
+  const req = toConverse({
+    system: "sys", max_tokens: 100,
+    tools: [{ name: "bash", description: "d", input_schema: { type: "object", properties: {} } }],
+    messages: [
+      { role: "user", content: "hi" },
+      { role: "assistant", content: [{ type: "tool_use", id: "t1", name: "bash", input: { command: "ls" } }] },
+      { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", content: "a.txt" }] },
+    ],
+  });
+  assert.equal(req.toolConfig.tools[0].toolSpec.inputSchema.json.type, "object");
+  assert.equal(req.messages[1].content[0].toolUse.toolUseId, "t1");
+  assert.equal(req.messages[2].content[0].toolResult.content[0].text, "a.txt");
+  const res = fromConverse({ stopReason: "tool_use", output: { message: { content: [{ text: "ok" }, { toolUse: { toolUseId: "t2", name: "bash", input: { command: "pwd" } } }] } } });
+  assert.equal(res.content[1].type, "tool_use");
+  assert.equal(res.content[1].id, "t2");
+});

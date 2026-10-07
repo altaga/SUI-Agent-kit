@@ -99,13 +99,14 @@ async function init(/** @type {Record<string,string|boolean>} */ flags) {
 function doctor(/** @type {import("./config.js").Config} */ cfg) {
   const ok = (/** @type {boolean} */ b) => (b ? c(32, "ok  ") : c(31, "FAIL"));
   const major = Number(process.versions.node.split(".")[0]);
-  const model = createModel(cfg);
+  /** @type {any} */ let model = null, modelErr = "";
+  try { model = createModel(cfg); } catch (e) { modelErr = /** @type {any} */ (e).message; }
   const w = loadWallet();
   const mem = selectMemory(cfg);
   const has = (/** @type {string} */ bin) => spawnSync(process.platform === "win32" ? "where" : "which", [bin], { stdio: "ignore" }).status === 0;
   console.log(`${ok(major >= 22)} node ${process.versions.node} (needs >= 22)`);
   console.log(`${ok(true)} ${process.platform}/${os.arch()}  state: ${HOME}`);
-  console.log(`${ok(!!model)} model: ${model ? `${model.provider} ${model.id}` : "none (set ANTHROPIC_API_KEY or AWS credentials)"}`);
+  console.log(`${ok(!!model)} model: ${model ? `${model.provider} ${model.id}` : modelErr || "none (set ANTHROPIC_API_KEY or AWS credentials)"}`);
   console.log(`${ok(!!w)} wallet: ${w ? w.address : "not created (run: agent init)"} on ${cfg.network}`);
   console.log(`${ok(true)} memory: ${mem.kind}${mem.kind === "local" ? " (run: agent init --walrus for persistent Walrus Memory)" : ""}`);
   console.log(`${ok(has("git"))} git ${has("git") ? "" : "(optional, used by coding tasks)"}`);
