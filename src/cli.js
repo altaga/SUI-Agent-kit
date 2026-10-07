@@ -1,5 +1,6 @@
 // @ts-check
 import fs from "node:fs";
+import path from "node:path";
 import os from "node:os";
 import readline from "node:readline/promises";
 import { createRequire } from "node:module";
@@ -103,7 +104,7 @@ async function init(/** @type {Record<string,string|boolean>} */ flags) {
 
 function installBrowser() {
   /** @type {string} */ let cli;
-  try { cli = createRequire(import.meta.url).resolve("playwright-core/cli.js"); } catch { return console.error("playwright-core is not installed. Run `npm install` in the kit folder first."); }
+  try { cli = path.join(path.dirname(createRequire(import.meta.url).resolve("playwright-core/package.json")), "cli.js"); } catch { return console.error("playwright-core is not installed. Run `npm install` in the kit folder first."); }
   console.log(`Installing Chromium into ${process.env.PLAYWRIGHT_BROWSERS_PATH} ...`);
   const r = spawnSync(process.execPath, [cli, "install", "chromium"], { stdio: "inherit" });
   if (r.status !== 0) return console.error("Install failed. On Linux you may also need system libraries: sudo npx playwright-core install-deps chromium");
