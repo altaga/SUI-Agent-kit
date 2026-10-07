@@ -33,7 +33,7 @@ export async function runResurrection(o) {
   if (cfg.network !== "testnet") throw new Error("The demo only runs on testnet.");
   if (!wallet) throw new Error("No wallet. Run: agent init");
   const t0 = Date.now();
-  const step = (/** @type {number} */ n, /** @type {string} */ title, /** @type {string} */ status, /** @type {string} */ [detail] = "") => emit({ type: "step", n, title, status, detail, ms: Date.now() - t0 });
+  const step = (/** @type {number} */ n, /** @type {string} */ title, /** @type {string} */ status, /** @type {string} */ detail = "") => emit({ type: "step", n, title, status, detail, ms: Date.now() - t0 });
   const client = suiClient("testnet");
   const ns = `demo-${crypto.randomBytes(3).toString("hex")}`;
   const secret = phrase();
@@ -75,7 +75,7 @@ export async function runResurrection(o) {
   step(4, "Machine A is destroyed", "ok", "local memory, wallet and files: gone");
 
   step(5, "Machine B wakes up with nothing", "run");
-  const task = "You just woke up on a brand-new machine: empty disk, no wallet, no files. Your only long-term memory is Walrus. Recall what the previous agent did on Sui. Answer in two short lines: the full transaction digest, and the secret recovery phrase. Then call skills_list and name one Sui skill that would help you verify that transaction (name only).";
+  const task = "You just woke up on a brand-new machine: empty disk, no wallet, no files. Your only long-term memory is Walrus. Recall what the previous agent did on Sui. First call skills_list and pick one Sui skill that would help you verify the transaction. Then reply with exactly three lines and nothing else:\nDIGEST: <full transaction digest>\nPHRASE: <secret recovery phrase>\nSKILL: <skill name>";
   /** @type {Record<string,string|undefined>} */
   const env = { ...process.env, AGENT_HOME: home, AGENT_NETWORK: "testnet", MEMWAL_ACCOUNT_ID: walrus.opts.accountId, MEMWAL_KEY: walrus.opts.delegateKey, MEMWAL_SERVER_URL: walrus.opts.serverUrl, MEMWAL_NAMESPACE: ns };
   for (const k of ["SUI_PRIVATE_KEY", "AGENT_WEB_TOKEN"]) delete env[k];

@@ -2,6 +2,17 @@
 import os from "node:os";
 import { tools as defaultTools } from "./tools.js";
 
+/** Some models (Llama) wrap tool arguments as {type, value}; unwrap them. */
+export function unwrapArgs(/** @type {any} */ v) {
+  if (Array.isArray(v)) return v.map(unwrapArgs);
+  if (v && typeof v === "object") {
+    const k = Object.keys(v);
+    if (k.length === 2 && k.includes("type") && k.includes("value")) return unwrapArgs(v.value);
+    return Object.fromEntries(Object.entries(v).map(([a, b]) => [a, unwrapArgs(b)]));
+  }
+  return v;
+}
+
 const BASE_PROMPT = `You are an autonomous agent running on the user's own machine, with persistent long-term memory, coding tools (bash, files), web access and a Sui wallet to buy x402-priced services.
 Work step by step, use tools instead of guessing, and keep answers short. Before spending money say what and why; stay inside the configured budget.
 For Sui, Move or Walrus work, call skills_list and skill_load first and follow the skill instead of guessing APIs.
@@ -60,7 +71,7 @@ export function createAgent(o) {
         let out;
         try {
           const t = toolset.find((x) => x.name === c.name);
-          out = t ? await t.run(c.input, ctx) : `Unknown tool ${c.name}`;
+          out = t ? await t.run(unwrapArgs(c.input), ctx) : `Unknown tool ${c.name}`;
         } catch (e) { out = `Error: ${/** @type {any} */ (e).message}`; }
         emit({ type: "result", text: String(out).slice(0, 300) });
         results.push({ type: "tool_result", tool_use_id: c.id, content: String(out) || "(no output)" });

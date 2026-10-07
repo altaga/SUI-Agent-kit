@@ -106,3 +106,9 @@ test("skills: list and load Sui skills, reject path traversal", async () => {
   assert.throws(() => loadSkill(cwd, "demo-skill", "../../../../etc/passwd"), /escapes/);
   assert.throws(() => loadSkill(cwd, "nope"), /Unknown skill/);
 });
+
+test("tool arguments wrapped as {type,value} (Llama quirk) are unwrapped", async () => {
+  const { unwrapArgs } = await import("../src/agent.js");
+  assert.deepEqual(unwrapArgs({ name: { type: "string", value: "x" }, n: { type: "number", value: 3 }, keep: { type: "t", value: 1, extra: 2 } }), { name: "x", n: 3, keep: { type: "t", value: 1, extra: 2 } });
+  assert.deepEqual(unwrapArgs({ list: [{ type: "string", value: "a" }] }), { list: ["a"] });
+});
