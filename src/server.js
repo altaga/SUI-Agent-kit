@@ -95,6 +95,19 @@ export async function startServer(o) {
     const { balances: b } = await suiClient(o.cfg.network).core.listBalances({ owner: o.wallet.address });
     return b.map((/** @type {any} */ x) => ({ coinType: x.coinType, balance: x.balance }));
   }
+  const COINS = /** @type {const} */ ([["sui", "::sui::SUI", 9], ["wal", "::wal::WAL", 9], ["usdc", "::usdc::USDC", 6]]);
+  async function summary() {
+    /** @type {Record<string, string>} */
+    const out = { sui: "0", wal: "0", usdc: "0" };
+    for (const b of await balances()) {
+      const c = COINS.find(([, suffix]) => b.coinType.endsWith(suffix));
+      if (!c) continue;
+      const v = BigInt(b.balance), d = 10n ** BigInt(c[2]);
+      const frac = (v % d).toString().padStart(c[2], "0").slice(0, c[0] === "usdc" ? 2 : 4);
+      out[c[0]] = `${v / d}.${frac}`;
+    }
+    return { network: o.cfg.network, address: o.wallet?.address ?? null, ...out };
+  }
   const need = (/** @type {Session|undefined} */ s) => { if (!s) throw Object.assign(new Error("unknown session"), { code: 404 }); return s; };
   const needWalrus = () => { if (!o.walrus) throw new Error("Walrus Memory is not configured"); return o.walrus; };
 
@@ -122,6 +135,7 @@ export async function startServer(o) {
       if (req.method === "GET" && p === "/api/status") {
         return json(res, 200, { provider: o.model.provider, model: o.model.id, walrus: !!o.walrus, demo: !!o.walrus && !!o.wallet && o.cfg.network === "testnet", network: o.cfg.network, address: o.wallet?.address ?? null, approval: o.cfg.approval, cwd: o.cwd });
       }
+      if (req.method === "GET" && p === "/api/balance") return json(res, 200, await summary());
       if (req.method === "GET" && p === "/api/actions") {
         return json(res, 200, Object.entries(actions).filter(([, a]) => a.available).map(([name, a]) => ({ name, label: a.label, description: a.description, input: a.input })));
       }
