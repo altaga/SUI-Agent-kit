@@ -4,7 +4,7 @@
 # If Node.js >= 22 is missing, an official Node tarball is downloaded into that folder.
 set -eu
 
-REPO="${AGENT_KIT_REPO:-altaga/sui-agent-kit}"
+REPO="${AGENT_KIT_REPO:-altaga/SUI-Agent-kit}"
 REF="${AGENT_KIT_REF:-main}"
 BASE="${AGENT_KIT_HOME:-$HOME/.sui-agent-kit}"
 APP="$BASE/app"

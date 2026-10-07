@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/altaga/sui-agent-kit.git"
+    "url": "git+https://github.com/altaga/SUI-Agent-kit.git"
   },
   "bin": {
     "agent": "bin/agent.mjs"

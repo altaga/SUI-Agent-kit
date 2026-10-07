@@ -25,18 +25,18 @@ Every turn the agent **recalls** relevant memories, **acts** with tools in a loo
 macOS, Linux, Raspberry Pi, Jetson, cloud VMs (x64 and arm64):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/altaga/sui-agent-kit/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/altaga/SUI-Agent-kit/main/install.sh | sh
 ```
 
 Windows (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/altaga/sui-agent-kit/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/altaga/SUI-Agent-kit/main/install.ps1 | iex
 ```
 
 The installer needs no sudo/admin rights and changes nothing outside `~/.sui-agent-kit`. If Node.js 22+ is not installed it downloads an official copy (checksum verified) into that folder. Uninstall by deleting the folder.
 
-From a clone instead: `git clone https://github.com/altaga/sui-agent-kit && cd sui-agent-kit && npm install && node bin/agent.mjs`.
+From a clone instead: `git clone https://github.com/altaga/SUI-Agent-kit && cd SUI-Agent-kit && npm install && node bin/agent.mjs`.
 
 ## Use
 
@@ -124,7 +124,7 @@ Plain ESM JavaScript with JSDoc types (checked with `npm run typecheck`), so it 
 
 ## Status
 
-Early (v0.1). Tested on Linux arm64 and x64. The Windows installer follows the same steps but has had less testing; please open an issue if something breaks. x402 payments assume a 6-decimal stablecoin.
+Early (v0.1). Tested on Linux arm64 (Jetson and an AWS Graviton VM). The Windows installer follows the same steps but has had less testing; please open an issue if something breaks. x402 payments assume a 6-decimal stablecoin.
 
 ## License
 

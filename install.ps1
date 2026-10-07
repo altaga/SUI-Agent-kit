@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$Repo = if ($env:AGENT_KIT_REPO) { $env:AGENT_KIT_REPO } else { "altaga/sui-agent-kit" }
+$Repo = if ($env:AGENT_KIT_REPO) { $env:AGENT_KIT_REPO } else { "altaga/SUI-Agent-kit" }
 $Ref  = if ($env:AGENT_KIT_REF) { $env:AGENT_KIT_REF } else { "main" }
 $Base = if ($env:AGENT_KIT_HOME) { $env:AGENT_KIT_HOME } else { Join-Path $env:USERPROFILE ".sui-agent-kit" }
 $App = Join-Path $Base "app"; $Bin = Join-Path $Base "bin"; $NodeDir = Join-Path $Base "node"
