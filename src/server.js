@@ -8,6 +8,7 @@ import { createAgent } from "./agent.js";
 import { LocalMemory, LayeredMemory } from "./memory.js";
 import { suiClient } from "./x402.js";
 import { requestTestnetSui } from "./faucet.js";
+import { runResurrection } from "./demo.js";
 
 const APPROVAL_TIMEOUT_MS = 120_000;
 const MAX_SESSIONS = 20;
@@ -50,6 +51,7 @@ export async function startServer(o) {
   const port = o.port ?? 8787;
   const host = "127.0.0.1";
 
+  let demoBusy = false;
   /** @type {Map<string, Session>} */ const sessions = new Map();
   /** @type {Map<string, {session:string, resolve:(ok:boolean)=>void}>} */ const pending = new Map();
 
@@ -118,7 +120,7 @@ export async function startServer(o) {
     try {
       const p = url.pathname;
       if (req.method === "GET" && p === "/api/status") {
-        return json(res, 200, { provider: o.model.provider, model: o.model.id, walrus: !!o.walrus, network: o.cfg.network, address: o.wallet?.address ?? null, approval: o.cfg.approval, cwd: o.cwd });
+        return json(res, 200, { provider: o.model.provider, model: o.model.id, walrus: !!o.walrus, demo: !!o.walrus && !!o.wallet && o.cfg.network === "testnet", network: o.cfg.network, address: o.wallet?.address ?? null, approval: o.cfg.approval, cwd: o.cwd });
       }
       if (req.method === "GET" && p === "/api/actions") {
         return json(res, 200, Object.entries(actions).filter(([, a]) => a.available).map(([name, a]) => ({ name, label: a.label, description: a.description, input: a.input })));
@@ -150,6 +152,20 @@ export async function startServer(o) {
         if (!a) return json(res, 404, { error: "no such pending approval" });
         a.resolve(b.allow === true);
         return json(res, 200, { ok: true });
+      }
+      if (req.method === "POST" && p === "/api/demo/resurrection") {
+        if (demoBusy) return json(res, 409, { error: "a demo is already running" });
+        if (o.cfg.network !== "testnet" || !o.walrus || !o.wallet) return json(res, 400, { error: "The demo needs testnet, a wallet and Walrus Memory." });
+        demoBusy = true;
+        res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
+        res.flushHeaders();
+        const send = (/** @type {any} */ e) => { if (!res.writableEnded) res.write(`data: ${JSON.stringify(e)}\n\n`); };
+        const ac = new AbortController();
+        res.on("close", () => ac.abort());
+        try { await runResurrection({ cfg: o.cfg, wallet: o.wallet, walrus: o.walrus, emit: send, signal: ac.signal }); send({ type: "done", text: "" }); }
+        catch (e) { send({ type: "error", text: /** @type {any} */ (e).message }); }
+        finally { demoBusy = false; res.end(); }
+        return;
       }
       if (req.method === "POST" && p === "/api/chat") {
         const b = /** @type {any} */ (await readBody(req));
