@@ -87,6 +87,7 @@ export default function Home() {
     if (!activeId || busy) return;
     pinned.current = true;
     setBusy(true);
+    setItems((it) => applyEvent(it, { type: 'user', text }));
     abort.current = new AbortController();
     try {
       await stream('/api/chat', { session: activeId, message: text }, (e) => setItems((it) => applyEvent(it, e)), abort.current.signal);

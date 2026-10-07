@@ -42,7 +42,7 @@ input,textarea{font:inherit;color:inherit}
 .demo-card{border:1px solid var(--accent);background:var(--soft);border-radius:12px;padding:10px 12px;text-align:left;width:100%}
 .demo-card b{display:block;font-family:var(--serif);font-weight:500;font-size:15px}
 .demo-card span{font-size:12px;color:var(--muted)}
-.foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);padding:2px 6px}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);padding:2px 6px}.foot span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.foot button{white-space:nowrap;flex:none}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;height:100%}
 .top{display:none;align-items:center;gap:10px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--border);background:var(--bg)}
 .icon{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;flex:none}

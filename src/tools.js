@@ -7,6 +7,16 @@ import { listSkills, loadSkill } from "./skills.js";
 import { browse } from "./browser.js";
 import { HOME } from "./config.js";
 
+const KNOWN_COINS = /** @type {[string,string,number][]} */ ([["SUI", "::sui::SUI", 9], ["WAL", "::wal::WAL", 9], ["USDC", "::usdc::USDC", 6]]);
+/** @param {string} coinType @param {string} raw */
+function formatBalance(coinType, raw) {
+  const k = KNOWN_COINS.find(([, suffix]) => coinType.endsWith(suffix));
+  if (!k) return { coinType, rawAmount: raw };
+  const d = 10n ** BigInt(Number(k[2])), v = BigInt(raw);
+  return { symbol: k[0], amount: `${v / d}.${(v % d).toString().padStart(Number(k[2]), "0")}`, coinType, rawAmount: raw };
+}
+
+
 /**
  * @typedef {Object} Ctx
  * @property {string} cwd
@@ -172,7 +182,7 @@ export const tools = [
     run: async (_i, ctx) => {
       if (!ctx.wallet) return "No wallet. Run: agent init";
       const { balances } = await suiClient(ctx.cfg.network).core.listBalances({ owner: ctx.wallet.address });
-      return JSON.stringify({ address: ctx.wallet.address, network: ctx.cfg.network, balances: balances.map((b) => ({ coinType: b.coinType, balance: b.balance })), maxPerCallUsd: ctx.cfg.maxPerCallUsd, dailyBudgetUsd: ctx.cfg.dailyBudgetUsd });
+      return JSON.stringify({ address: ctx.wallet.address, network: ctx.cfg.network, balances: balances.map((b) => formatBalance(b.coinType, b.balance)), maxPerCallUsd: ctx.cfg.maxPerCallUsd, dailyBudgetUsd: ctx.cfg.dailyBudgetUsd });
     },
   },
   {

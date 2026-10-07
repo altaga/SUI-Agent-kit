@@ -194,6 +194,7 @@ export async function startServer(o) {
         const send = (/** @type {any} */ e) => { keep(e); if (!res.writableEnded) res.write(`data: ${JSON.stringify(e)}\n\n`); };
         s.sink = send;
         keep({ type: "user", text: message });
+        if (/^Session \d+$/.test(s.name)) s.name = message.replace(/\s+/g, " ").slice(0, 40);
         res.on("close", () => { for (const [id, a] of pending) if (a.session === s.id) a.resolve(false); });
         try {
           send({ type: "done", text: await s.agent.run(message) });
