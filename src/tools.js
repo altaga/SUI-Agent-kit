@@ -11,8 +11,9 @@ import { listSkills, loadSkill } from "./skills.js";
  * @property {import("./config.js").Config} cfg
  * @property {import("./memory.js").Memory} memory
  * @property {any} wallet
+ * @property {import("./memory.js").WalrusMemory|null} [walrus]   Walrus Memory, reachable on demand even when the session memory is local
  * @property {(what:string)=>Promise<boolean>} approve   ask the human (always allowed when approval=auto)
- * @typedef {{name:string, description:string, input_schema:any, mutating?:boolean, run:(input:any, ctx:Ctx)=>Promise<string>}} Tool
+ * @typedef {{name:string, description:string, input_schema:any, mutating?:boolean, needs?:"walrus", run:(input:any, ctx:Ctx)=>Promise<string>}} Tool
  */
 
 const MAX = 20_000;
@@ -46,6 +47,29 @@ export function runShell(/** @type {string} */ command, /** @type {string} */ cw
 
 /** @type {Tool[]} */
 export const tools = [
+  {
+    name: "walrus_recall",
+    description: "Search the agent's long-term memory on Walrus (shared across sessions and machines), even though this session starts with an empty local memory. Use `namespace` to read another agent's memories on the same account; `save` copies the results into this session's local memory.",
+    input_schema: { type: "object", properties: { query: { type: "string" }, limit: { type: "number" }, namespace: { type: "string" }, save: { type: "boolean" } }, required: ["query"] },
+    needs: "walrus",
+    run: async (i, ctx) => {
+      const w = i.namespace ? /** @type {any} */ (ctx.walrus).withNamespace(String(i.namespace)) : ctx.walrus;
+      const r = await /** @type {any} */ (w).recall(i.query, Math.min(Number(i.limit) || 5, 20));
+      if (i.save) for (const m of r) await ctx.memory.remember(m.text);
+      return r.length ? r.map((/** @type {any} */ m) => `- ${m.at ? `[${m.at.slice(0, 10)}] ` : ""}${m.text}`).join("\n") + (i.save ? "\n(copied to this session's memory)" : "") : "Nothing found on Walrus.";
+    },
+  },
+  {
+    name: "walrus_remember",
+    description: "Store a fact in long-term memory on Walrus so every future session and machine can recall it.",
+    input_schema: { type: "object", properties: { text: { type: "string" }, namespace: { type: "string" } }, required: ["text"] },
+    needs: "walrus",
+    run: async (i, ctx) => {
+      const w = i.namespace ? /** @type {any} */ (ctx.walrus).withNamespace(String(i.namespace)) : ctx.walrus;
+      await /** @type {any} */ (w).remember(i.text);
+      return "Stored on Walrus.";
+    },
+  },
   {
     name: "skills_list",
     description: "List the agent skills installed for this project (e.g. the Sui skills from mystenlabs/skills) with a one-line description each. Check this before writing Sui or Move code.",

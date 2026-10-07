@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { HOME, file, loadConfig, saveConfig, loadEnv, WALRUS } from "./config.js";
 import { loadWallet } from "./wallet.js";
 import { createModel } from "./model.js";
-import { selectMemory } from "./memory.js";
+import { selectMemory, selectWalrus } from "./memory.js";
 import { createAgent } from "./agent.js";
 import { provisionWalrus } from "./provision.js";
 import { suiClient } from "./x402.js";
@@ -155,8 +155,8 @@ export async function main(/** @type {string[]} */ argv) {
   const memory = selectMemory(cfg);
   const cwd = typeof flags.cwd === "string" ? flags.cwd : process.cwd();
   if (cmd === "serve") {
-    const srv = await startServer({ model, memory, cfg, wallet: w, cwd, port: typeof flags.port === "string" ? Number(flags.port) : undefined });
-    console.log(`${c(1, "sui-agent-kit")} API on http://127.0.0.1:${srv.port} (loopback only) | ${model.provider} ${model.id} | memory: ${memory.kind}
+    const srv = await startServer({ model, walrus: selectWalrus(cfg), cfg, wallet: w, cwd, port: typeof flags.port === "string" ? Number(flags.port) : undefined });
+    console.log(`${c(1, "sui-agent-kit")} API on http://127.0.0.1:${srv.port} (loopback only) | ${model.provider} ${model.id} | walrus: ${memory.kind === "walrus" ? "on" : "off"}
 token file: ${file("web-token")} (or AGENT_WEB_TOKEN)`);
     return;
   }

@@ -13,6 +13,7 @@ Memories from earlier sessions may appear below: treat the newest as authoritati
  * @param {import("./memory.js").Memory} o.memory
  * @param {import("./config.js").Config} o.cfg
  * @param {any} o.wallet
+ * @param {import("./memory.js").WalrusMemory|null} [o.walrus]  Walrus Memory available on demand (tools walrus_recall / walrus_remember)
  * @param {string} [o.cwd]
  * @param {(what:string)=>Promise<boolean>} [o.approve]
  * @param {(e:{type:"text"|"tool"|"result"|"memory", text:string})=>void} [o.onEvent]
@@ -22,7 +23,7 @@ Memories from earlier sessions may appear below: treat the newest as authoritati
  */
 export function createAgent(o) {
   const cwd = o.cwd || process.cwd();
-  const toolset = o.tools || defaultTools;
+  const toolset = (o.tools || defaultTools).filter((t) => t.needs !== "walrus" || o.walrus);
   const emit = o.onEvent || (() => {});
   const approve = async (/** @type {string} */ what) => (o.cfg.approval === "auto" ? true : (o.approve ? o.approve(what) : false));
   /** @type {any[]} */
@@ -36,12 +37,13 @@ export function createAgent(o) {
     const system = [
       BASE_PROMPT,
       o.system || "",
+      o.walrus ? "This session's own memory may be empty, but long-term memory lives on Walrus: when the user refers to earlier work, decisions or facts, call walrus_recall before saying you don't know. Save durable facts with walrus_remember." : "",
       `Date: ${new Date().toISOString()} | OS: ${process.platform}/${os.arch()} | cwd: ${cwd} | Sui ${o.cfg.network} wallet: ${o.wallet?.address ?? "none"}`,
       recalled.length ? `Relevant memories (newest first):\n${recalled.map((m) => `- ${m.at ? `[${m.at.slice(0, 10)}] ` : ""}${m.text}`).join("\n")}` : "",
     ].filter(Boolean).join("\n\n");
 
     messages.push({ role: "user", content: input });
-    const ctx = { cwd, cfg: o.cfg, memory: o.memory, wallet: o.wallet, approve };
+    const ctx = { cwd, cfg: o.cfg, memory: o.memory, wallet: o.wallet, walrus: o.walrus || null, approve };
     const specs = toolset.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
     let final = "";
 

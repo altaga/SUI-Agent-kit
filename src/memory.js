@@ -66,9 +66,13 @@ export class WalrusMemory {
   kind = "walrus";
   /** @param {{accountId:string, delegateKey:string, serverUrl:string, namespace?:string}} o */
   constructor(o) {
+    this.opts = o;
     this.ns = o.namespace || "agent";
     this.mem = MemWal.create({ key: o.delegateKey, accountId: o.accountId, serverUrl: o.serverUrl, namespace: this.ns });
   }
+
+  /** Same account, another namespace (e.g. a different agent's memories). */
+  withNamespace(/** @type {string} */ namespace) { return new WalrusMemory({ ...this.opts, namespace }); }
 
   async remember(/** @type {string} */ text) {
     await retrying(() => this.mem.rememberAndWait(text, this.ns));
@@ -86,13 +90,35 @@ export class WalrusMemory {
   }
 }
 
-/** Walrus Memory when the agent was provisioned with it (agent init --walrus), otherwise the local file. */
-export function selectMemory(/** @type {import("./config.js").Config} */ cfg) {
+/** Walrus options when the agent was provisioned with Walrus Memory (agent init --walrus or MEMWAL_* env), else null. */
+export function walrusOptions(/** @type {import("./config.js").Config} */ cfg) {
   const m = process.env.MEMWAL_ACCOUNT_ID && process.env.MEMWAL_KEY
     ? { provider: /** @type {const} */ ("walrus"), accountId: process.env.MEMWAL_ACCOUNT_ID, delegateKey: process.env.MEMWAL_KEY, serverUrl: process.env.MEMWAL_SERVER_URL, namespace: process.env.MEMWAL_NAMESPACE }
     : cfg.memory;
-  if (m?.provider === "walrus" && m.accountId && m.delegateKey) {
-    return new WalrusMemory({ ...m, serverUrl: m.serverUrl || WALRUS[cfg.network].relayer });
+  if (m?.provider === "walrus" && m.accountId && m.delegateKey) return { ...m, serverUrl: m.serverUrl || WALRUS[cfg.network].relayer };
+  return null;
+}
+
+/** The Walrus Memory client for this agent, or null when not configured. */
+export function selectWalrus(/** @type {import("./config.js").Config} */ cfg) {
+  const o = walrusOptions(cfg);
+  return o ? new WalrusMemory(o) : null;
+}
+
+/** Walrus Memory when the agent was provisioned with it (agent init --walrus), otherwise the local file. */
+export function selectMemory(/** @type {import("./config.js").Config} */ cfg) {
+  return selectWalrus(cfg) || new LocalMemory();
+}
+
+/** Local memory for the session plus Walrus: writes go to both, recalls merge both (newest first, deduplicated). */
+export class LayeredMemory {
+  kind = "local+walrus";
+  constructor(/** @type {Memory} */ local, /** @type {Memory} */ walrus) { this.local = local; this.walrus = walrus; }
+  async remember(/** @type {string} */ text) { await Promise.all([this.local.remember(text), this.walrus.remember(text)]); }
+  async rememberTurn(/** @type {string} */ u, /** @type {string} */ a) { await Promise.all([this.local.rememberTurn(u, a), this.walrus.rememberTurn(u, a)]); }
+  async recall(/** @type {string} */ query, limit = 5) {
+    const [l, w] = await Promise.all([this.local.recall(query, limit), this.walrus.recall(query, limit).catch(() => [])]);
+    const seen = new Set();
+    return [...l, ...w].filter((m) => !seen.has(m.text) && seen.add(m.text)).sort((a, b) => (b.at || "").localeCompare(a.at || "")).slice(0, limit);
   }
-  return new LocalMemory();
 }
