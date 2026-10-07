@@ -38,7 +38,7 @@
     "start": "expo start",
     "web": "expo start --web",
     "build": "expo export -p web",
-    "serve": "expo serve",
+    "serve": "node server.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint"
   },
