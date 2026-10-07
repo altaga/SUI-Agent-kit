@@ -77,7 +77,9 @@ Use `--network mainnet` (or `AGENT_NETWORK=mainnet`) for mainnet; the default is
 
 ## Tools the agent has
 
-`bash` (sh on Unix, cmd.exe on Windows), `read_file`, `write_file`, `edit_file`, `list_dir`, `web_fetch`, `fetch_paid` (x402), `wallet_info`, `memory_remember`, `memory_recall`.
+`bash` (sh on Unix, cmd.exe on Windows; `~/.sui-agent-kit/bin` is on its PATH), `read_file`, `write_file`, `edit_file`, `list_dir`, `web_fetch`, `browser` (headless Chromium via Playwright: open, snapshot, click, fill, resize, console, screenshot), `fetch_paid` (x402), `wallet_info`, `memory_remember`, `memory_recall`, `walrus_recall`/`walrus_remember` (when Walrus Memory is configured), `skills_list`/`skill_load` (the MystenLabs Sui skills in `.claude/skills`).
+
+For remote development install the optional browser once with `agent install-browser`, and the `sui` CLI into `~/.sui-agent-kit/bin` so the agent can build, test and publish Move packages. `agent doctor` reports both.
 
 ## Safety model
 
@@ -86,6 +88,20 @@ Use `--network mainnet` (or `AGENT_NETWORK=mainnet`) for mainnet; the default is
 - **No secrets in the repo.** The wallet key, delegate key, API keys and memory live only in `~/.sui-agent-kit` (override with `AGENT_HOME`). `.gitignore` excludes them.
 - **Walrus Memory uses a delegate key**, not your wallet key: it can be revoked on-chain without touching the wallet.
 - The agent runs commands with your user's permissions. Use a VM or container for untrusted tasks.
+
+## SUIde: the web app
+
+`suide/` is an Expo (web, server output) chat app, modelled on the Claude interface, for talking to a remote agent from a phone or a desktop browser. It shows the agent wallet (SUI / WAL / USDC on testnet), multiple chats with three memory modes (local, Walrus on demand, Walrus sync), approval cards for shell commands and payments, and a one-click demo, "The agent that never forgets": machine A pays on Sui testnet and saves what it learned to Walrus, is wiped, and machine B recovers the facts from Walrus and verifies the transaction on-chain.
+
+```sh
+agent serve --port 8787                       # agent API, loopback only, bearer token in ~/.sui-agent-kit/web-token
+cd suide && npm ci && npx expo export -p web  # build
+SUIDE_PASSWORD=... SUIDE_SESSION_SECRET=... AGENT_URL=http://127.0.0.1:8787 node server.mjs   # serves on 127.0.0.1:3000
+```
+
+Put a TLS reverse proxy (for example Caddy) in front of port 3000 and keep 8787 closed.
+
+Security model: the browser never sees the agent token. Expo API routes act as a backend-for-frontend: password login, signed HttpOnly SameSite=Strict session cookie, same-origin checks, login throttling and an allowlist of agent routes. Tool calls that run shell commands or pay stay in `ask` mode, so the signed-in user approves each one.
 
 ## Use as an SDK
 
@@ -117,6 +133,9 @@ src/tools.js      shell, files, web, wallet, memory tools
 src/x402.js       paying fetch with budget policy
 src/provision.js  creates a Walrus Memory account + delegate key
 src/cli.js        commands
+src/server.js     agent HTTP API (sessions, SSE chat, balance, demo)
+src/browser.js    Playwright browser tool
+suide/            SUIde web app (Expo, server output)
 install.sh / install.ps1
 ```
 
