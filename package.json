@@ -1,0 +1,50 @@
+{
+  "name": "sui-agent-kit",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Plug-and-play agents with persistent memory (Walrus Memory), Claude, coding tools and x402 payments on Sui",
+  "scripts": {
+    "start": "node bin/agent.mjs",
+    "doctor": "node bin/agent.mjs doctor",
+    "typecheck": "tsc -p .",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@altaga/x402-sui": "1.3.0",
+    "@anthropic-ai/bedrock-sdk": "0.34.0",
+    "@anthropic-ai/sdk": "0.129.0",
+    "@mysten-incubation/memwal": "0.1.8",
+    "@mysten/seal": "1.4.17",
+    "@mysten/sui": "2.33.2",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.3",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/altaga/sui-agent-kit.git"
+  },
+  "bin": {
+    "agent": "bin/agent.mjs"
+  },
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "install.sh",
+    "install.ps1",
+    "README.md",
+    "LICENSE"
+  ]
+}

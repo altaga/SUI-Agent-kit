@@ -147,3 +147,13 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# sui-agent-kit local state: never commit wallets, keys or memory
+.agent/
+.sui-agent-kit/
+wallet.json
+config.json
+memory.json
+spend.json
+*.pem
+*.key
