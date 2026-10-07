@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import readline from "node:readline/promises";
+import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
 import { HOME, file, loadConfig, saveConfig, loadEnv, WALRUS } from "./config.js";
 import { loadWallet } from "./wallet.js";
@@ -11,6 +12,7 @@ import { createAgent } from "./agent.js";
 import { provisionWalrus } from "./provision.js";
 import { suiClient } from "./x402.js";
 import { startServer } from "./server.js";
+import "./browser.js";
 
 const HELP = `sui-agent-kit: an agent with persistent memory, coding tools and a Sui wallet
 
@@ -19,6 +21,7 @@ const HELP = `sui-agent-kit: an agent with persistent memory, coding tools and a
   agent init [--walrus]     set up wallet; --walrus creates a Walrus Memory account for persistent memory
                             (or set MEMWAL_ACCOUNT_ID + MEMWAL_KEY to use an existing account)
   agent serve [--port 8787]  local HTTP API (127.0.0.1 only, bearer token) for the SUIde web UI
+  agent install-browser     download headless Chromium (Playwright) so the agent can test web apps
   agent doctor              check this machine and the configuration
   agent wallet              show the agent's Sui address and balances
   agent memory recall <q>   search memory     |  agent memory remember "<text>"
@@ -98,6 +101,15 @@ async function init(/** @type {Record<string,string|boolean>} */ flags) {
   console.log(c(32, "ready. run: agent"));
 }
 
+function installBrowser() {
+  /** @type {string} */ let cli;
+  try { cli = createRequire(import.meta.url).resolve("playwright-core/cli.js"); } catch { return console.error("playwright-core is not installed. Run `npm install` in the kit folder first."); }
+  console.log(`Installing Chromium into ${process.env.PLAYWRIGHT_BROWSERS_PATH} ...`);
+  const r = spawnSync(process.execPath, [cli, "install", "chromium"], { stdio: "inherit" });
+  if (r.status !== 0) return console.error("Install failed. On Linux you may also need system libraries: sudo npx playwright-core install-deps chromium");
+  console.log(c(32, "browser ready"));
+}
+
 function doctor(/** @type {import("./config.js").Config} */ cfg) {
   const ok = (/** @type {boolean} */ b) => (b ? c(32, "ok  ") : c(31, "FAIL"));
   const major = Number(process.versions.node.split(".")[0]);
@@ -112,6 +124,9 @@ function doctor(/** @type {import("./config.js").Config} */ cfg) {
   console.log(`${ok(!!w)} wallet: ${w ? w.address : "not created (run: agent init)"} on ${cfg.network}`);
   console.log(`${ok(true)} memory: ${mem.kind}${mem.kind === "local" ? " (run: agent init --walrus for persistent Walrus Memory)" : ""}`);
   console.log(`${ok(has("git"))} git ${has("git") ? "" : "(optional, used by coding tasks)"}`);
+  const hasPw = (() => { try { createRequire(import.meta.url).resolve("playwright-core"); return fs.existsSync(process.env.PLAYWRIGHT_BROWSERS_PATH || file("browsers")) && fs.readdirSync(process.env.PLAYWRIGHT_BROWSERS_PATH || file("browsers")).some((d) => d.startsWith("chromium")); } catch { return false; } })();
+  console.log(`${ok(hasPw)} browser (Playwright) ${hasPw ? "" : "(optional: run `agent install-browser` to let the agent test web apps)"}`);
+  console.log(`${ok(has("sui"))} sui CLI ${has("sui") ? "" : "(optional: needed to build and publish Move packages)"}`);
   console.log(`budget: <= ${cfg.maxPerCallUsd} USD/call, ${cfg.dailyBudgetUsd} USD/day, approval=${cfg.approval}`);
 }
 
@@ -126,10 +141,11 @@ async function wallet(/** @type {import("./config.js").Config} */ cfg) {
 
 export async function main(/** @type {string[]} */ argv) {
   const { flags, rest } = parse(argv);
-  const cmd = rest[0] && ["init", "run", "serve", "doctor", "wallet", "memory", "help"].includes(rest[0]) ? rest.shift() : "chat";
+  const cmd = rest[0] && ["init", "run", "serve", "doctor", "wallet", "memory", "install-browser", "help"].includes(rest[0]) ? rest.shift() : "chat";
   if (flags.help || cmd === "help") return console.log(HELP);
   const cfg = await setup(flags);
 
+  if (cmd === "install-browser") return installBrowser();
   if (cmd === "init") return init(flags);
   if (cmd === "doctor") return doctor(cfg);
   if (cmd === "wallet") return wallet(cfg);

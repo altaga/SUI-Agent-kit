@@ -23,6 +23,9 @@
     "hash-wasm": "4.12.0",
     "zod": "4.6.5"
   },
+  "optionalDependencies": {
+    "playwright-core": "1.62.1"
+  },
   "devDependencies": {
     "@types/node": "26.6.3",
     "tsx": "4.23.15",

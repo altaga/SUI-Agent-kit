@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { payFetch, suiClient } from "./x402.js";
 import { listSkills, loadSkill } from "./skills.js";
+import { browse } from "./browser.js";
 
 /**
  * @typedef {Object} Ctx
@@ -91,6 +92,12 @@ export const tools = [
       if (!(await ctx.approve(`RUN  ${i.command}`))) return "Declined by user.";
       return runShell(i.command, ctx.cwd, Math.min(i.timeout_s || 120, 1800) * 1000);
     },
+  },
+  {
+    name: "browser",
+    description: "Drive a headless Chromium (Playwright) to test web apps you build or read pages. Actions: open {url}, snapshot {selector?} (accessibility tree, best for finding elements), text {selector?}, click {selector}, fill {selector, text}, press {key}, resize {width,height} (try 390x844 for mobile), console (errors since last call), screenshot {full_page?} (saved under .agent-shots/), close. Selectors are Playwright selectors, e.g. `text=Sign in`, `role=button[name=\"Send\"]`, `#id`. Localhost pages are fully automatic; actions on other sites ask the user first.",
+    input_schema: { type: "object", properties: { action: { type: "string" }, url: { type: "string" }, selector: { type: "string" }, text: { type: "string" }, key: { type: "string" }, width: { type: "number" }, height: { type: "number" }, full_page: { type: "boolean" } }, required: ["action"] },
+    run: async (i, ctx) => { try { return await browse(i, ctx); } catch (e) { return `browser error: ${/** @type {Error} */ (e).message.split("\n")[0]}`; } },
   },
   {
     name: "read_file",
