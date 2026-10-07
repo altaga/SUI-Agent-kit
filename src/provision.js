@@ -1,6 +1,6 @@
 // @ts-check
 import { createAccount, addDelegateKey, generateDelegateKey } from "@mysten-incubation/memwal/account";
-import { requestSuiFromFaucetV2, getFaucetHost } from "@mysten/sui/faucet";
+import { requestTestnetSui } from "./faucet.js";
 import { WALRUS } from "./config.js";
 import { suiClient } from "./x402.js";
 
@@ -19,7 +19,7 @@ export async function provisionWalrus(/** @type {{wallet:any, network:"testnet"|
     if (o.network !== "testnet") throw new Error(`Wallet ${o.wallet.address} needs at least 0.1 SUI on mainnet to create a Walrus Memory account.`);
     log("requesting testnet SUI from the faucet…");
     try {
-      await requestSuiFromFaucetV2({ host: getFaucetHost("testnet"), recipient: o.wallet.address });
+      await requestTestnetSui(o.wallet.address, log);
     } catch (e) {
       throw new Error(`Faucet unavailable (${/** @type {any} */ (e).message}). Get testnet SUI for ${o.wallet.address} at https://faucet.sui.io, then run: agent init --walrus`);
     }
