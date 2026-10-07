@@ -1,8 +1,10 @@
 // Production server for the exported app: binds to loopback only (a reverse proxy terminates TLS in front).
 import http from 'node:http';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { createRequestHandler } from 'expo-server/adapter/http';
+
+const { createRequestHandler } = createRequire(import.meta.url)('expo-server/adapter/http');
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 3000);
