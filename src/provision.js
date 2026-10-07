@@ -26,7 +26,7 @@ export async function provisionWalrus(/** @type {{wallet:any, network:"testnet"|
     for (let i = 0; i < 15 && (await sui()) < MIN_SUI; i++) await new Promise((r) => setTimeout(r, 2000));
     if ((await sui()) < MIN_SUI) throw new Error("Faucet funds did not arrive; retry in a minute or fund the wallet manually.");
   }
-  const common = { packageId: w.packageId, registryId: w.registryId, suiPrivateKey: o.wallet.secretKey, suiNetwork: o.network };
+  const common = { packageId: w.packageId, registryId: w.registryId, suiPrivateKey: o.wallet.secretKey, suiNetwork: o.network, suiClient: client };
   log("creating Walrus Memory account…");
   const acct = await createAccount(common);
   const key = await generateDelegateKey();
