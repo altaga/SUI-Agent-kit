@@ -9,7 +9,7 @@ button:disabled{cursor:default;opacity:.45}
 input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .app{display:flex;height:100vh;height:100dvh;height:var(--vvh,100dvh);position:relative}
-.side{width:288px;flex:none;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px 12px calc(12px + env(safe-area-inset-bottom));gap:12px;overflow:hidden}
+.side{width:288px;flex:none;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px 12px calc(12px + env(safe-area-inset-bottom));gap:12px;overflow-x:hidden;overflow-y:auto}
 .brand{display:flex;align-items:center;gap:9px;padding:2px 6px;font-family:var(--serif);font-size:21px;letter-spacing:-.01em}
 .brand svg{flex:none}
 .bal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:left;width:100%}
@@ -31,7 +31,7 @@ input,textarea{font:inherit;color:inherit}
 .modes button{flex:1;font-size:12px;padding:5px 4px;border-radius:7px;color:var(--muted)}
 .modes button.on{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:4px 8px 0}
-.list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.list{flex:1;min-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
 .row{display:flex;align-items:center;border-radius:9px}
 .row:hover,.row.on{background:var(--hover)}
 .row .main{flex:1;min-width:0;padding:7px 10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
