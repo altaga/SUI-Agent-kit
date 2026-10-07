@@ -7,3 +7,4 @@ export { tools, runShell } from "./tools.js";
 export { payFetch } from "./x402.js";
 export { provisionWalrus } from "./provision.js";
 export { requestTestnetSui } from "./faucet.js";
+export { startServer } from "./server.js";

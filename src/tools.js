@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { payFetch, suiClient } from "./x402.js";
+import { listSkills, loadSkill } from "./skills.js";
 
 /**
  * @typedef {Object} Ctx
@@ -45,6 +46,18 @@ export function runShell(/** @type {string} */ command, /** @type {string} */ cw
 
 /** @type {Tool[]} */
 export const tools = [
+  {
+    name: "skills_list",
+    description: "List the agent skills installed for this project (e.g. the Sui skills from mystenlabs/skills) with a one-line description each. Check this before writing Sui or Move code.",
+    input_schema: { type: "object", properties: {} },
+    run: async (_i, ctx) => listSkills(ctx.cwd).map((s) => `- ${s.name}: ${s.description.slice(0, 160)}`).join("\n") || "No skills installed. Install with: npx skills add mystenlabs/skills --all",
+  },
+  {
+    name: "skill_load",
+    description: "Load a skill's instructions (SKILL.md), or one of its reference files via `file` (relative path inside the skill, e.g. bootstrap.md). Follow what it says instead of guessing Sui APIs.",
+    input_schema: { type: "object", properties: { name: { type: "string" }, file: { type: "string" } }, required: ["name"] },
+    run: async (i, ctx) => loadSkill(ctx.cwd, i.name, i.file || ""),
+  },
   {
     name: "bash",
     description: `Run a shell command on this machine (${process.platform}; sh on Unix, cmd.exe on Windows) in the working directory. Returns combined stdout/stderr and the exit code.`,

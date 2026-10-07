@@ -10,6 +10,7 @@ import { selectMemory } from "./memory.js";
 import { createAgent } from "./agent.js";
 import { provisionWalrus } from "./provision.js";
 import { suiClient } from "./x402.js";
+import { startServer } from "./server.js";
 
 const HELP = `sui-agent-kit: an agent with persistent memory, coding tools and a Sui wallet
 
@@ -17,6 +18,7 @@ const HELP = `sui-agent-kit: an agent with persistent memory, coding tools and a
   agent run "<task>"        run one task and exit (add --auto for headless use)
   agent init [--walrus]     set up wallet; --walrus creates a Walrus Memory account for persistent memory
                             (or set MEMWAL_ACCOUNT_ID + MEMWAL_KEY to use an existing account)
+  agent serve [--port 8787]  local HTTP API (127.0.0.1 only, bearer token) for the SUIde web UI
   agent doctor              check this machine and the configuration
   agent wallet              show the agent's Sui address and balances
   agent memory recall <q>   search memory     |  agent memory remember "<text>"
@@ -35,7 +37,7 @@ function parse(/** @type {string[]} */ argv) {
     const a = argv[i];
     if (a.startsWith("--")) {
       const next = argv[i + 1];
-      if (["network", "model", "cwd"].includes(a.slice(2)) && next) { flags[a.slice(2)] = next; i++; } else flags[a.slice(2)] = true;
+      if (["network", "model", "cwd", "port"].includes(a.slice(2)) && next) { flags[a.slice(2)] = next; i++; } else flags[a.slice(2)] = true;
     } else rest.push(a);
   }
   return { flags, rest };
@@ -124,7 +126,7 @@ async function wallet(/** @type {import("./config.js").Config} */ cfg) {
 
 export async function main(/** @type {string[]} */ argv) {
   const { flags, rest } = parse(argv);
-  const cmd = rest[0] && ["init", "run", "doctor", "wallet", "memory", "help"].includes(rest[0]) ? rest.shift() : "chat";
+  const cmd = rest[0] && ["init", "run", "serve", "doctor", "wallet", "memory", "help"].includes(rest[0]) ? rest.shift() : "chat";
   if (flags.help || cmd === "help") return console.log(HELP);
   const cfg = await setup(flags);
 
@@ -151,8 +153,15 @@ export async function main(/** @type {string[]} */ argv) {
   const w = loadWallet(true);
   if (w?.created) console.log(c(90, `created agent wallet ${w.address} (Sui ${cfg.network}), state in ${HOME}`));
   const memory = selectMemory(cfg);
+  const cwd = typeof flags.cwd === "string" ? flags.cwd : process.cwd();
+  if (cmd === "serve") {
+    const srv = await startServer({ model, memory, cfg, wallet: w, cwd, port: typeof flags.port === "string" ? Number(flags.port) : undefined });
+    console.log(`${c(1, "sui-agent-kit")} API on http://127.0.0.1:${srv.port} (loopback only) | ${model.provider} ${model.id} | memory: ${memory.kind}
+token file: ${file("web-token")} (or AGENT_WEB_TOKEN)`);
+    return;
+  }
   const agent = createAgent({
-    model, memory, cfg, wallet: w, cwd: typeof flags.cwd === "string" ? flags.cwd : process.cwd(),
+    model, memory, cfg, wallet: w, cwd,
     approve: makeApprove(), onEvent: printEvent,
   });
 

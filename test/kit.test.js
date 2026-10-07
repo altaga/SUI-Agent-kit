@@ -91,3 +91,18 @@ test("converse adapter maps tools, tool results and responses", async () => {
   assert.equal(res.content[1].type, "tool_use");
   assert.equal(res.content[1].id, "t2");
 });
+
+test("skills: list and load Sui skills, reject path traversal", async () => {
+  const { listSkills, loadSkill } = await import("../src/skills.js");
+  const dir = path.join(tmp, "proj/.claude/skills/demo-skill");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "SKILL.md"), "---\nname: demo-skill\ndescription: >\n  Does a demo\n  thing.\n---\n# Demo\nbody");
+  fs.writeFileSync(path.join(dir, "ref.md"), "reference");
+  const cwd = path.join(tmp, "proj");
+  const s = listSkills(cwd).find((x) => x.name === "demo-skill");
+  assert.equal(s.description, "Does a demo thing.");
+  assert.match(loadSkill(cwd, "demo-skill"), /# Demo/);
+  assert.equal(loadSkill(cwd, "demo-skill", "ref.md"), "reference");
+  assert.throws(() => loadSkill(cwd, "demo-skill", "../../../../etc/passwd"), /escapes/);
+  assert.throws(() => loadSkill(cwd, "nope"), /Unknown skill/);
+});
