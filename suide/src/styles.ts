@@ -34,10 +34,10 @@ input,textarea{font:inherit;color:inherit}
 .list{flex:1;min-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
 .row{display:flex;align-items:center;border-radius:9px}
 .row:hover,.row.on{background:var(--hover)}
-.row .main{flex:1;min-width:0;padding:7px 10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .main{flex:1;min-width:0;padding:7px 10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .row .x{opacity:0;padding:6px 8px;color:var(--muted)}
 .row:hover .x,.row .x:focus-visible{opacity:1}
-.mode-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:8px;background:var(--faint)}
+.mode-dot{display:inline-block;vertical-align:middle;flex:none;width:6px;height:6px;border-radius:50%;margin-right:8px;background:var(--faint)}
 .mode-dot.on-demand{background:var(--accent)}.mode-dot.sync{background:var(--ok)}
 .demo-card{border:1px solid var(--accent);background:var(--soft);border-radius:12px;padding:10px 12px;text-align:left;width:100%}
 .demo-card b{display:block;font-family:var(--serif);font-weight:500;font-size:15px}
