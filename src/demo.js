@@ -41,13 +41,13 @@ export async function runResurrection(o) {
 
   step(1, "Machine A wakes up", "run");
   let { balances } = await client.core.listBalances({ owner: wallet.address });
-  let sui = BigInt(balances.find((/** @type {any} */ b) => b.coinType === "0x2::sui::SUI")?.balance ?? 0);
+  let sui = BigInt(balances.find((/** @type {any} */ b) => b.coinType.endsWith("::sui::SUI"))?.balance ?? 0);
   if (sui < 20_000_000n) {
     emit({ type: "text", text: "Wallet is low on gas, asking the testnet faucet…" });
-    await requestTestnetSui(wallet.address, () => {});
+    for (let i = 0; ; i++) { try { await requestTestnetSui(wallet.address, () => {}); break; } catch (e) { if (i >= 2) throw e; } }
     await sleep(2000);
     ({ balances } = await client.core.listBalances({ owner: wallet.address }));
-    sui = BigInt(balances.find((/** @type {any} */ b) => b.coinType === "0x2::sui::SUI")?.balance ?? 0);
+    sui = BigInt(balances.find((/** @type {any} */ b) => b.coinType.endsWith("::sui::SUI"))?.balance ?? 0);
   }
   step(1, "Machine A wakes up", "ok", `${short(wallet.address)} · ${(Number(sui) / 1e9).toFixed(3)} SUI on testnet`);
 
