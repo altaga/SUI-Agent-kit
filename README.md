@@ -101,6 +101,8 @@ SUIDE_PASSWORD=... SUIDE_SESSION_SECRET=... AGENT_URL=http://127.0.0.1:8787 node
 
 Put a TLS reverse proxy (for example Caddy) in front of port 3000 and keep 8787 closed.
 
+Alternatively deploy SUIde to EAS Hosting (`npx expo export --platform web && eas deploy --prod --environment production`) and set `AGENT_URL` (HTTPS) and `AGENT_TOKEN` as EAS environment variables with `sensitive` visibility (`secret` variables are not readable by `eas deploy`). The agent then sits behind a reverse proxy that only forwards requests carrying its bearer token.
+
 Security model: the browser never sees the agent token. Expo API routes act as a backend-for-frontend: password login, signed HttpOnly SameSite=Strict session cookie, same-origin checks, login throttling and an allowlist of agent routes. Tool calls that run shell commands or pay stay in `ask` mode, so the signed-in user approves each one.
 
 ## Use as an SDK
