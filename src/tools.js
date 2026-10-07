@@ -5,6 +5,7 @@ import path from "node:path";
 import { payFetch, suiClient } from "./x402.js";
 import { listSkills, loadSkill } from "./skills.js";
 import { browse } from "./browser.js";
+import { HOME } from "./config.js";
 
 /**
  * @typedef {Object} Ctx
@@ -32,7 +33,8 @@ function killTree(/** @type {import("node:child_process").ChildProcess} */ child
 /** Runs a command with the platform shell (sh on Linux/macOS, cmd.exe on Windows). */
 export function runShell(/** @type {string} */ command, /** @type {string} */ cwd, timeoutMs = 120_000) {
   return new Promise((resolve) => {
-    const child = spawn(command, { shell: true, cwd, detached: process.platform !== "win32", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+    const env = { ...process.env, PATH: `${path.join(HOME, "bin")}${path.delimiter}${process.env.PATH ?? ""}` };
+    const child = spawn(command, { shell: true, cwd, env, detached: process.platform !== "win32", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     let out = "", timedOut = false;
     const add = (/** @type {Buffer} */ d) => { out += d; if (out.length > 400_000) out = out.slice(-200_000); };
     child.stdout.on("data", add);
