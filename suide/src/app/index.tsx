@@ -6,17 +6,11 @@ import { Demo } from '@/components/Demo';
 import { Login } from '@/components/Login';
 import { Sidebar } from '@/components/Sidebar';
 import { Chevron, Drop, Menu, RichText, Spark } from '@/components/ui';
+import { QUICK } from '@/lib/quick';
 import { api, stream, type ActionInfo, type SessionInfo, type Status } from '@/lib/api';
 import { applyEvent, fromLog, uid, type Item } from '@/lib/events';
 
 type Mode = 'local' | 'on-demand' | 'sync';
-
-const SUGGEST = [
-  "What's in my wallet?",
-  'Which Sui skills do you have?',
-  'Search Walrus for what we did before',
-  'Write a minimal Move module and explain it',
-];
 
 export default function Home() {
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -45,7 +39,8 @@ export default function Home() {
   const boot = useCallback(async () => {
     const [st, ss, ac] = await Promise.all([api.status(), api.sessions(), api.actions()]);
     setStatus(st); setActions(ac);
-    if (ss.length) { setSessions(ss); await open(ss[0].id); }
+    if (ss.length && ss[0].messages === 0) { setSessions(ss); await open(ss[0].id); }
+    else if (ss.length) { const n = await api.createSession({}); setSessions(await api.sessions()); await open(n.id); }
     else { const s = await api.createSession({}); setSessions([s]); setActiveId(s.id); setItems([]); }
   }, []);
 
@@ -196,7 +191,10 @@ export default function Home() {
                   <Drop size={40} />
                   <h1>What should we build?</h1>
                   <p>An agent with a Sui wallet, long-term memory on Walrus and the Sui skills. {active?.mode === 'on-demand' ? 'This chat starts with a clean memory and can search Walrus when needed.' : active?.mode === 'sync' ? 'This chat reads and writes Walrus as it goes.' : ''}</p>
-                  <div className="suggest">{SUGGEST.map((s) => <button key={s} onClick={() => send(s)}>{s}</button>)}</div>
+                  <div className="quick-grid">
+                    {QUICK.map((q) => <button key={q.id} onClick={() => send(q.prompt)} disabled={busy}><b>{q.label}</b><span>{q.hint}</span></button>)}
+                    <button className="demo" onClick={() => setView('demo')}><b>Run the demo</b><span>The agent that never forgets</span></button>
+                  </div>
                 </div>
               ) : (
                 <div className="col">
@@ -205,6 +203,7 @@ export default function Home() {
                 </div>
               )}
             </div>
+            {items.length > 0 && !busy ? <div className="quick-strip" aria-label="Quick commands">{QUICK.map((q) => <button key={q.id} onClick={() => send(q.prompt)}>{q.label}</button>)}</div> : null}
             <Composer busy={busy} disabled={!activeId} placeholder="Message SUIde" focusSignal={focusSignal} onSend={send} onStop={() => abort.current?.abort()} />
           </>
         )}

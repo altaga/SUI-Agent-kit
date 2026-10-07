@@ -53,6 +53,15 @@ input,textarea{font:inherit;color:inherit}
 .hello{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px;gap:14px;min-height:100%}
 .hello h1{font-family:var(--serif);font-weight:400;font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;margin:0}
 .hello p{margin:0;color:var(--muted);max-width:460px}
+.quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;max-width:620px;margin-top:10px;text-align:left}
+.quick-grid button{display:flex;flex-direction:column;gap:2px;border:1px solid var(--border);background:var(--card);border-radius:14px;padding:12px 14px;min-height:64px}
+.quick-grid button b{font-weight:600;font-size:14.5px}.quick-grid button span{font-size:12.5px;color:var(--muted)}
+.quick-grid button:hover{border-color:var(--strong);background:var(--hover)}.quick-grid button:disabled{opacity:.5}
+.quick-grid .demo{border-color:var(--accent);background:var(--soft)}
+.quick-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 16px 8px;max-width:760px;margin:0 auto;width:100%;scrollbar-width:none}
+.quick-strip::-webkit-scrollbar{display:none}
+.quick-strip button{flex:none;border:1px solid var(--border);background:var(--card);border-radius:99px;padding:7px 14px;font-size:13.5px;white-space:nowrap}
+.quick-strip button:hover{border-color:var(--strong);background:var(--hover)}
 .suggest{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px}
 .suggest button{border:1px solid var(--border);background:var(--card);border-radius:99px;padding:7px 14px;font-size:13.5px}
 .suggest button:hover{border-color:var(--strong);background:var(--hover)}
